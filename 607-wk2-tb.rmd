@@ -1,0 +1,65 @@
+---
+title: "607-wk2-tb"
+author: "Tyler Frankenberg"
+date: "2/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stringr)
+library(rvest)
+
+```
+
+## Importing csv files.
+
+We start by importing the two .csv files containing our datapoints, as separate dataframes.
+
+
+```{r read-csv-files}
+
+population <- as.data.frame(read.csv("https://raw.githubusercontent.com/curdferguson/607-wk2-tb/cec949647cf86c56e60a073fe6d215d9c9daf1b0/population(2).csv"))
+
+tb <- as.data.frame(read.csv("https://raw.githubusercontent.com/curdferguson/607-wk2-tb/cec949647cf86c56e60a073fe6d215d9c9daf1b0/wk2-tb-cases.csv"))
+
+## rename the dataframe tb's columns
+names(tb) <- c("country", "year", "cases")
+
+```
+
+
+## Joining the tables
+
+We are not concerned with years for which we do not have both a population and a tb_cases datapoint, so we use an inner join to combine the two tables.
+
+```{r join-tables}
+
+tb_rates <- inner_join(tb, population)
+
+```
+## Calculate the tb rate
+
+We calculate TB rate by mutating the "tb_rates" dataframe to include a column that divides cases by population for that country and year.
+
+```{r calculate-rates}
+
+tb_rates <- tb_rates %>%
+  mutate(tb_rate = cases/population)
+
+```
+
+
+## Example analysis: two countries over time.
+
+How did the tb rates in Afghanistan and Iraq change from year-to-year over the period from 1995 - 2015?  We can use a subset function to isolate the data for just the two countries in its own data frame, and then a simple ggplot to display the two countries' changing rates over time side-by-side.
+
+```{r plot-data}
+
+tb_rates_afiq <- subset(tb_rates, country == "Afghanistan" | country == "Iraq")
+
+ggplot(tb_rates_afiq, aes(year, tb_rate, col=country)) +
+  geom_line()
+
+```
